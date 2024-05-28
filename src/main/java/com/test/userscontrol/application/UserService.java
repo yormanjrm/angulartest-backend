@@ -10,23 +10,7 @@ public class UserService {
         this.iUserRepository = iUserRepository;
     }
 
-    public User save(User user){
-            return iUserRepository.save(user);
+    public User save(User user) {
+        return iUserRepository.save(user);
     }
-
-//    public Iterable<User> findAll(){
-//        return iUserRepository.findAll();
-//    }
-//
-//    public User findByEmail(String email){
-//        return iUserRepository.findByEmail(email);
-//    }
-//
-//    public User findById(Integer id){
-//        return iUserRepository.findById(id);
-//    }
-//
-//    public void deleteById(Integer id){
-//        this.iUserRepository.deleteById(id);
-//    }
 }
