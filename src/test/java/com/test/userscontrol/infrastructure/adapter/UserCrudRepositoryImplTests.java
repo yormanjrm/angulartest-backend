@@ -12,6 +12,7 @@ import org.mockito.MockitoAnnotations;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -78,18 +79,12 @@ class UserCrudRepositoryImpTests {
         when(userMapper.toUser(userEntity1)).thenReturn(user1);
         // Llama al método que se está probando, en este caso, 'save()' de la implementación de 'UserCrudRepository'
         User savedUser = userCrudRepositoryImp.save(newUser);
+        // Verifica que el objeto de usuario devuelto por el método 'save()' tenga los valores esperados
+        assertEquals(user1, savedUser);
         // Verifica que los métodos del mock 'userMapper' y del mock 'userCrudRepository' se hayan llamado correctamente
         verify(userMapper, times(1)).toUserEntity(newUser);
         verify(userCrudRepository, times(1)).save(userEntity1);
         verify(userMapper, times(1)).toUser(userEntity1);
-        // Verifica que el objeto de usuario devuelto por el método 'save()' tenga los valores esperados
-        assertEquals(1, savedUser.getId());
-        assertEquals("John Doe", savedUser.getName());
-        assertEquals("john.doe@example.com", savedUser.getEmail());
-        assertEquals("password123", savedUser.getPassword());
-        assertEquals("ADMIN", savedUser.getRole());
-        assertEquals("default.png", savedUser.getImage());
-        assertEquals(now, savedUser.getDate_created());
     }
 
     @Test
@@ -109,4 +104,24 @@ class UserCrudRepositoryImpTests {
         // Verifica que el método 'toUsers()' del mock 'userMapper' se haya llamado exactamente una vez con 'userEntities' como argumento
         verify(userMapper, times(1)).toUsers(userEntities);
     }
+
+    @Test
+    public void shouldReturnAnUserFindedById() {
+        // Configura el comportamiento esperado al llamar al método 'findById' del objeto 'userCrudRepository'
+        // Cuando se llama con el ID 1 como argumento, devuelve un Optional que contiene 'userEntity1'
+        when(userCrudRepository.findById(1)).thenReturn(Optional.ofNullable(userEntity1));
+        // Configura el comportamiento esperado al llamar al método 'toUser' del objeto 'userMapper'
+        // Cuando se llama con 'userEntity1' como argumento, devuelve 'user1'
+        when(userMapper.toUser(userEntity1)).thenReturn(user1);
+        // Llama al método findById del UserCrudRepositoryImp
+        User result = userCrudRepositoryImp.findById(1);
+        // Verifica que el usuario devuelto es igual a 'user1'
+        assertEquals(user1, result);
+        // Verifica que el método 'findById' del objeto 'userCrudRepository' se llamó una vez con el ID 1
+        verify(userCrudRepository, times(1)).findById(1);
+        // Verifica que el método 'toUser' del objeto 'userMapper' se llamó una vez con 'userEntity1' como argumento
+        verify(userMapper, times(1)).toUser(userEntity1);
+    }
+
+
 }

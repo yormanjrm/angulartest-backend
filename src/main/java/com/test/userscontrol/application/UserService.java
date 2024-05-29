@@ -17,4 +17,8 @@ public class UserService {
     public Iterable<User> findAll() {
         return iUserRepository.findAll();
     }
+
+    public User findById(Integer id) {
+        return iUserRepository.findById(id);
+    }
 }

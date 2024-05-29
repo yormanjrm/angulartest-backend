@@ -24,4 +24,9 @@ public class UserCrudRepositoryImp implements IUserRepository {
     public Iterable<User> findAll() {
         return userMapper.toUsers(iUserCrudRepository.findAll());
     }
+
+    @Override
+    public User findById(Integer id) {
+        return userMapper.toUser(iUserCrudRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found")));
+    }
 }

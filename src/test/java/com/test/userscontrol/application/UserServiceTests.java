@@ -74,4 +74,17 @@ class UserServiceTests {
         // Verifica que el elemento en la posición 1 sea igual a user2
         assertEquals(user2, ((List<User>) result).get(1));
     }
+
+    @Test
+    void shouldReturnAnUserFindedById(){
+        // Configura el comportamiento esperado al llamar al método 'findById' del objeto 'userRepository'
+        // Cuando se llama con el ID 1 como argumento, devuelve 'user1'
+        when(userRepository.findById(1)).thenReturn(user1);
+        // Llama al método findById del UserService
+        User userFound = userService.findById(1);
+        // Verifica que el método 'findById' del objeto 'userRepository' se llamó una vez con el ID 1
+        verify(userRepository, times(1)).findById(1);
+        // Verifica que el usuario devuelto es igual a 'user1'
+        assertEquals(user1, userFound);
+    }
 }

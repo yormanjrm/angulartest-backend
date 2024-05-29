@@ -24,4 +24,9 @@ public class UserController {
     public ResponseEntity<Iterable<User>> findAll(){
         return new ResponseEntity<>(userService.findAll(), HttpStatus.OK);
     }
+
+    @GetMapping("/get-byId")
+    public ResponseEntity<User> findById(@RequestParam Integer id) {
+        return new ResponseEntity<>(userService.findById(id), HttpStatus.OK);
+    }
 }

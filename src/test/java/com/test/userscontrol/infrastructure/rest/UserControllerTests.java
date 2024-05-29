@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class UserControllerTests {
 
     private MockMvc mockMvc;
-
+    private LocalDateTime now;
     private User newuser;
     private User user1;
     private User user2;
@@ -37,9 +37,10 @@ public class UserControllerTests {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+        now = LocalDateTime.now();
         newuser = new User(null, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", null);
-        user1 = new User(1, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", LocalDateTime.now());
-        user2 = new User(2, "Jane Doe", "jane.doe@example.com", "password123", "USER", "default.png", LocalDateTime.now());
+        user1 = new User(1, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", now);
+        user2 = new User(2, "Jane Doe", "jane.doe@example.com", "password123", "USER", "default.png", now);
     }
 
     @Test
@@ -110,4 +111,32 @@ public class UserControllerTests {
         verify(userService, times(1)).findAll();
 
     }
+
+    @Test
+    public void shouldReturnAnUserFindedById() throws Exception {
+        // Configuramos el comportamiento esperado del servicio al llamar a findById con el id 1
+        when(userService.findById(1)).thenReturn(user1);
+        // Simulamos una solicitud GET con el id proporcionado como form-data
+        mockMvc.perform(get("/api/users/get-byId")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        // Aquí se agrega el id como parámetro del formulario
+                        .param("id", "1"))
+                // Verifica que el código de estado de la respuesta sea 200 OK
+                .andExpect(status().isOk())
+                // Verifica que el id del usuario en la respuesta coincida con user1.getId()
+                .andExpect(jsonPath("$.id").value(user1.getId()))
+                // Verifica que el nombre del usuario en la respuesta coincida con user1.getName()
+                .andExpect(jsonPath("$.name").value(user1.getName()))
+                // Verifica que el email del usuario en la respuesta coincida con user1.getEmail()
+                .andExpect(jsonPath("$.email").value(user1.getEmail()))
+                // Verifica que el password del usuario en la respuesta coincida con user1.getPassword()
+                .andExpect(jsonPath("$.password").value(user1.getPassword()))
+                // Verifica que el rol del usuario en la respuesta coincida con user1.getRole()
+                .andExpect(jsonPath("$.role").value(user1.getRole()))
+                // Verifica que la imagen del usuario en la respuesta coincida con user1.getImage()
+                .andExpect(jsonPath("$.image").value(user1.getImage()));
+        // Verificamos que el método findById del servicio se haya llamado exactamente una vez con el id proporcionado
+        verify(userService, times(1)).findById(1);
+    }
+
 }
