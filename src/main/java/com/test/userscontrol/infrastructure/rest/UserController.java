@@ -29,4 +29,10 @@ public class UserController {
     public ResponseEntity<User> findById(@RequestParam Integer id) {
         return new ResponseEntity<>(userService.findById(id), HttpStatus.OK);
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<HttpStatus> deleteById(@RequestParam Integer id){
+        userService.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
 }

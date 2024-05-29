@@ -139,4 +139,19 @@ public class UserControllerTests {
         verify(userService, times(1)).findById(1);
     }
 
+    @Test
+    void shouldDeleteUserById() throws Exception {
+        // ID del usuario que quieres eliminar
+        Integer userIdToDelete = 1;
+        // Configurar el comportamiento esperado del servicio userService
+        doNothing().when(userService).deleteById(userIdToDelete);
+        // Realizar una solicitud DELETE al endpoint "/api/users/delete" con el ID proporcionado como parámetro
+        mockMvc.perform(delete("/api/users/delete")
+                        .param("id", userIdToDelete.toString()))
+                // Verificar que la solicitud se completó exitosamente (200 OK)
+                .andExpect(status().isOk());
+        // Verificar que se llamó al método deleteById del servicio userService con el ID proporcionado
+        verify(userService, times(1)).deleteById(userIdToDelete);
+    }
+
 }

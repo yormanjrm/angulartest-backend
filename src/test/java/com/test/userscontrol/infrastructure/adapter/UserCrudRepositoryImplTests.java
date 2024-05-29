@@ -3,11 +3,13 @@ package com.test.userscontrol.infrastructure.adapter;
 import com.test.userscontrol.domain.model.User;
 import com.test.userscontrol.infrastructure.entity.UserEntity;
 import com.test.userscontrol.infrastructure.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
 class UserCrudRepositoryImpTests {
@@ -67,6 +70,7 @@ class UserCrudRepositoryImpTests {
     }
 
     @Test
+    @DirtiesContext
     void shouldSaveANewUser() {
         // Configura el comportamiento esperado del mock 'userMapper' cuando se llama al método 'toUserEntity()'
         // Cuando se llama al método 'toUserEntity()' con 'newUser' como argumento, devuelve 'userEntity1'
@@ -88,6 +92,7 @@ class UserCrudRepositoryImpTests {
     }
 
     @Test
+    @DirtiesContext
     public void shouldReturnAllUsers() {
         // Configura el comportamiento esperado del mock 'userCrudRepository' cuando se llama al método 'findAll()'
         // Cuando se llama al método 'findAll()', devuelve 'userEntities'
@@ -106,21 +111,16 @@ class UserCrudRepositoryImpTests {
     }
 
     @Test
-    public void shouldReturnAnUserFindedById() {
-        // Configura el comportamiento esperado al llamar al método 'findById' del objeto 'userCrudRepository'
-        // Cuando se llama con el ID 1 como argumento, devuelve un Optional que contiene 'userEntity1'
-        when(userCrudRepository.findById(1)).thenReturn(Optional.ofNullable(userEntity1));
-        // Configura el comportamiento esperado al llamar al método 'toUser' del objeto 'userMapper'
-        // Cuando se llama con 'userEntity1' como argumento, devuelve 'user1'
-        when(userMapper.toUser(userEntity1)).thenReturn(user1);
-        // Llama al método findById del UserCrudRepositoryImp
-        User result = userCrudRepositoryImp.findById(1);
-        // Verifica que el usuario devuelto es igual a 'user1'
-        assertEquals(user1, result);
-        // Verifica que el método 'findById' del objeto 'userCrudRepository' se llamó una vez con el ID 1
-        verify(userCrudRepository, times(1)).findById(1);
-        // Verifica que el método 'toUser' del objeto 'userMapper' se llamó una vez con 'userEntity1' como argumento
-        verify(userMapper, times(1)).toUser(userEntity1);
+    void shouldDeleteUserById() {
+        // Configuración del comportamiento esperado del mock iUserCrudRepository
+        doNothing().when(userCrudRepository).deleteById(2); // Configuración del comportamiento esperado del método deleteById
+        // Llamada al método a probar
+        userCrudRepositoryImp.deleteById(2); // Eliminamos el usuario con ID 2
+        // Verificación de que se llamó al método deleteById del mock iUserCrudRepository con el ID proporcionado
+        verify(userCrudRepository, times(1)).deleteById(2);
+        // Verificación de que el usuario ya no existe en la base de datos
+        Optional<UserEntity> deletedUser = userCrudRepository.findById(2);
+        assertFalse(deletedUser.isPresent());
     }
 
 

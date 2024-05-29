@@ -87,4 +87,12 @@ class UserServiceTests {
         // Verifica que el usuario devuelto es igual a 'user1'
         assertEquals(user1, userFound);
     }
+
+    @Test
+    void shouldDeleteUserById() {
+        // Llamada al método deleteById con el id 1
+        userService.deleteById(1);
+        // Verificamos que el método deleteById del repositorio se haya llamado exactamente una vez con el id 1
+        verify(userRepository, times(1)).deleteById(1);
+    }
 }

@@ -6,4 +6,5 @@ public interface IUserRepository {
     User save(User user);
     Iterable<User> findAll();
     User findById(Integer id);
+    void deleteById(Integer id);
 }
