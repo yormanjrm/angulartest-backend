@@ -16,8 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserCrudRepositoryImpTests {
@@ -108,6 +107,34 @@ class UserCrudRepositoryImpTests {
         verify(userCrudRepository, times(1)).findAll();
         // Verifica que el método 'toUsers()' del mock 'userMapper' se haya llamado exactamente una vez con 'userEntities' como argumento
         verify(userMapper, times(1)).toUsers(userEntities);
+    }
+
+    @Test
+    void shouldFindUserById() {
+        // Configuración del comportamiento esperado del mock 'userCrudRepository'
+        when(userCrudRepository.findById(1)).thenReturn(Optional.of(userEntity1));
+        // Configuración del comportamiento esperado del mock 'userMapper'
+        when(userMapper.toUser(userEntity1)).thenReturn(user1);
+        // Llamada al método a probar
+        User foundUser = userCrudRepositoryImp.findById(1);
+        // Verificación de que el usuario encontrado es el esperado
+        assertEquals(user1, foundUser);
+        // Verificación de que los métodos del mock fueron llamados correctamente
+        verify(userCrudRepository, times(1)).findById(1);
+        verify(userMapper, times(1)).toUser(userEntity1);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotFound() {
+        // Configuración del comportamiento esperado del mock 'userCrudRepository' para el caso de usuario no encontrado
+        when(userCrudRepository.findById(4)).thenReturn(Optional.empty());
+        // Verificación de que se lanza una RuntimeException cuando el usuario no se encuentra
+        assertThrows(RuntimeException.class, () -> {
+            userCrudRepositoryImp.findById(4);
+        });
+        // Verificación de que el método del mock fue llamado correctamente
+        verify(userCrudRepository, times(1)).findById(4);
+        verify(userMapper, never()).toUser(any(UserEntity.class));
     }
 
     @Test
