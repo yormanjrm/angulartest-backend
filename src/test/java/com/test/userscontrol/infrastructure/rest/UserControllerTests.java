@@ -1,21 +1,31 @@
 package com.test.userscontrol.infrastructure.rest;
 
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.userscontrol.application.UserService;
 import com.test.userscontrol.domain.model.User;
-import com.test.userscontrol.infrastructure.rest.UserController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 
-class UserControllerTest {
+public class UserControllerTests {
+
+    private MockMvc mockMvc;
+
+    private User newuser;
+    private User user1;
+    private User user2;
 
     @Mock
     private UserService userService;
@@ -24,26 +34,80 @@ class UserControllerTest {
     private UserController userController;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+        newuser = new User(null, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", null);
+        user1 = new User(1, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", LocalDateTime.now());
+        user2 = new User(2, "Jane Doe", "jane.doe@example.com", "password123", "USER", "default.png", LocalDateTime.now());
     }
 
     @Test
-    void shouldCreateUser() {
-        // Crear un usuario de prueba
-        User user = new User(null, "John Doe", "john.doe@example.com", "password", "user", "image.jpg", null, null);
+    public void shouldSaveUser() throws Exception {
+        // Configura el comportamiento esperado del método 'save()' del mock 'userService'
+        // Cuando se llama al método 'save()' con cualquier instancia de 'User', devuelve 'user1'
+        when(userService.save(any(User.class))).thenReturn(user1);
+        // Realiza una solicitud HTTP POST al endpoint '/api/users/register'
+        mockMvc.perform(post("/api/users/register")
+                        // Establece el tipo de contenido de la solicitud como JSON
+                        .contentType(MediaType.APPLICATION_JSON)
+                        // Configura el cuerpo de la solicitud como la representación JSON de 'newuser'
+                        .content(new ObjectMapper().writeValueAsString(newuser)))
+                // Verifica que el estado de la respuesta sea 201 (CREATED)
+                .andExpect(status().isCreated())
+                // Verifica que el cuerpo de la respuesta tenga el campo 'id' con el valor de 'user1.getId()'
+                .andExpect(jsonPath("$.id").value(user1.getId()))
+                // Verifica que el cuerpo de la respuesta tenga el campo 'name' con el valor de 'user1.getName()'
+                .andExpect(jsonPath("$.name").value(user1.getName()))
+                // Verifica que el cuerpo de la respuesta tenga el campo 'email' con el valor de 'user1.getEmail()'
+                .andExpect(jsonPath("$.email").value(user1.getEmail()))
+                // Verifica que el cuerpo de la respuesta tenga el campo 'password' con el valor de 'user1.getPassword()'
+                .andExpect(jsonPath("$.password").value(user1.getPassword()))
+                // Verifica que el cuerpo de la respuesta tenga el campo 'role' con el valor de 'user1.getRole()'
+                .andExpect(jsonPath("$.role").value(user1.getRole()))
+                // Verifica que el cuerpo de la respuesta tenga el campo 'image' con el valor de 'user1.getImage()'
+                .andExpect(jsonPath("$.image").value(user1.getImage()));
+        // Verifica que el método 'save()' del mock 'userService' se haya llamado exactamente una vez
+        verify(userService, times(1)).save(any(User.class));
+    }
 
-        // Configurar el comportamiento simulado del servicio de usuario
-        when(userService.save(user)).thenReturn(user);
+    @Test
+    public void shouldReturnAllUsers() throws Exception {
+        // Configura el comportamiento esperado del método 'findAll()' del mock 'userService'
+        // Cuando se llama al método 'findAll()', devuelve una lista que contiene 'user1' y 'user2'
+        when(userService.findAll()).thenReturn(Arrays.asList(user1, user2));
+        // Realiza una solicitud HTTP GET al endpoint '/api/users/get-all'
+        mockMvc.perform(get("/api/users/get-all")
+                        // Establece el tipo de contenido de la solicitud como JSON
+                        .contentType(MediaType.APPLICATION_JSON))
+                // Verifica que el estado de la respuesta sea 200 (OK)
+                .andExpect(status().isOk())
+                // Verifica que el primer elemento del arreglo tenga el campo 'id' con el valor de 'user1.getId()'
+                .andExpect(jsonPath("$[0].id").value(user1.getId()))
+                // Verifica que el primer elemento del arreglo tenga el campo 'name' con el valor de 'user1.getName()'
+                .andExpect(jsonPath("$[0].name").value(user1.getName()))
+                // Verifica que el primer elemento del arreglo tenga el campo 'email' con el valor de 'user1.getEmail()'
+                .andExpect(jsonPath("$[0].email").value(user1.getEmail()))
+                // Verifica que el primer elemento del arreglo tenga el campo 'password' con el valor de 'user1.getPassword()'
+                .andExpect(jsonPath("$[0].password").value(user1.getPassword()))
+                // Verifica que el primer elemento del arreglo tenga el campo 'role' con el valor de 'user1.getRole()'
+                .andExpect(jsonPath("$[0].role").value(user1.getRole()))
+                // Verifica que el primer elemento del arreglo tenga el campo 'image' con el valor de 'user1.getImage()'
+                .andExpect(jsonPath("$[0].image").value(user1.getImage()))
+                // Verifica que el segundo elemento del arreglo tenga el campo 'id' con el valor de 'user2.getId()'
+                .andExpect(jsonPath("$[1].id").value(user2.getId()))
+                // Verifica que el segundo elemento del arreglo tenga el campo 'name' con el valor de 'user2.getName()'
+                .andExpect(jsonPath("$[1].name").value(user2.getName()))
+                // Verifica que el segundo elemento del arreglo tenga el campo 'email' con el valor de 'user2.getEmail()'
+                .andExpect(jsonPath("$[1].email").value(user2.getEmail()))
+                // Verifica que el segundo elemento del arreglo tenga el campo 'password' con el valor de 'user2.getPassword()'
+                .andExpect(jsonPath("$[1].password").value(user2.getPassword()))
+                // Verifica que el segundo elemento del arreglo tenga el campo 'role' con el valor de 'user2.getRole()'
+                .andExpect(jsonPath("$[1].role").value(user2.getRole()))
+                // Verifica que el segundo elemento del arreglo tenga el campo 'image' con el valor de 'user2.getImage()'
+                .andExpect(jsonPath("$[1].image").value(user2.getImage()));
+        // Verifica que el método 'findAll()' del mock 'userService' se haya llamado exactamente una vez
+        verify(userService, times(1)).findAll();
 
-        // Llamar al método save del controlador de usuario
-        ResponseEntity<User> responseEntity = userController.save(user);
-
-        // Verificar que el servicio de usuario fue llamado con el usuario correcto
-        verify(userService).save(user);
-
-        // Verificar que la respuesta contiene el usuario correcto y el estado HTTP 201 (CREATED)
-        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
-        assertEquals(user, responseEntity.getBody());
     }
 }

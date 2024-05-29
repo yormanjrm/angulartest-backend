@@ -13,4 +13,8 @@ public class UserService {
     public User save(User user) {
         return iUserRepository.save(user);
     }
+
+    public Iterable<User> findAll() {
+        return iUserRepository.findAll();
+    }
 }

@@ -19,4 +19,9 @@ public class UserController {
     public ResponseEntity<User> save(@RequestBody User user) {
         return new ResponseEntity<>(userService.save(user), HttpStatus.CREATED);
     }
+
+    @GetMapping("/get-all")
+    public ResponseEntity<Iterable<User>> findAll(){
+        return new ResponseEntity<>(userService.findAll(), HttpStatus.OK);
+    }
 }

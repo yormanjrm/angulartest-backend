@@ -17,8 +17,7 @@ public interface UserMapper {
             @Mapping(source = "password", target = "password"),
             @Mapping(source = "role", target = "role"),
             @Mapping(source = "image", target = "image"),
-            @Mapping(source = "dateCreated", target = "dateCreated"),
-            @Mapping(source = "dateUpdated", target = "dateUpdated")
+            @Mapping(source = "date_created", target = "date_created")
     })
     User toUser(UserEntity userEntity);
 

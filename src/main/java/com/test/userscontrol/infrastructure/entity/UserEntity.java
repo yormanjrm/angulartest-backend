@@ -25,7 +25,5 @@ public class UserEntity {
     private String image;
     @CreationTimestamp
     @Column(updatable = false)
-    private LocalDateTime dateCreated;
-    @UpdateTimestamp
-    private LocalDateTime dateUpdated;
+    private LocalDateTime date_created;
 }

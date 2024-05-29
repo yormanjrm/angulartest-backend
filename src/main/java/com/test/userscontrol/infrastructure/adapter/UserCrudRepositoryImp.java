@@ -19,4 +19,9 @@ public class UserCrudRepositoryImp implements IUserRepository {
     public User save(User user) {
         return userMapper.toUser(iUserCrudRepository.save(userMapper.toUserEntity(user)));
     }
+
+    @Override
+    public Iterable<User> findAll() {
+        return userMapper.toUsers(iUserCrudRepository.findAll());
+    }
 }

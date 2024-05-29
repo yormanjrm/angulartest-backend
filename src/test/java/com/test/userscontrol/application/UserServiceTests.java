@@ -8,6 +8,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -19,26 +24,54 @@ class UserServiceTests {
     @InjectMocks
     private UserService userService;
 
+    private LocalDateTime now;
+    private User newUser;
+    private User user1;
+    private User user2;
+    private List<User> users;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        now = LocalDateTime.now();
+
+        newUser = new User(null, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", null);
+
+        user1 = new User(1, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", now);
+        user2 = new User(2, "Jane Doe", "jane.doe@example.com", "password123", "USER", "default.png", now);
+
+        users = Arrays.asList(user1, user2);
     }
 
     @Test
     void shouldSaveUser() {
-        // Crear un usuario de prueba
-        User user = new User(null, "John Doe", "john.doe@example.com", "password", "ADMIN", "default.png", null, null);
+        // Configura el comportamiento esperado del método 'save()' del mock 'userRepository'
+        // Cuando se llama al método 'save()' con 'newUser' como argumento, devuelve 'newUser'
+        when(userRepository.save(newUser)).thenReturn(newUser);
+        // Llama al método 'save()' en el objeto 'userService' con 'newUser' como argumento y guarda el resultado en 'savedUser'
+        User savedUser = userService.save(newUser);
+        // Verifica que el método 'save()' del mock 'userRepository' se haya llamado exactamente una vez con 'newUser' como argumento
+        verify(userRepository, times(1)).save(newUser);
+        // Verifica que 'savedUser' sea igual a 'newUser'
+        assertEquals(newUser, savedUser);
 
-        // Configurar el comportamiento simulado del userRepository.save
-        when(userRepository.save(user)).thenReturn(user);
+    }
 
-        // Llamar al método save del UserService
-        User savedUser = userService.save(user);
-
-        // Verificar que el método save del userRepository se llamó exactamente una vez
-        verify(userRepository, times(1)).save(user);
-
-        // Verificar que el usuario devuelto es el mismo que el usuario guardado originalmente
-        assertEquals(user, savedUser);
+    @Test
+    void shouldFindAllUsers() {
+        // Configura el comportamiento esperado del método 'findAll()' del mock 'userRepository'
+        // Cuando se llama al método 'findAll()', devuelve la lista de usuarios 'users'
+        when(userRepository.findAll()).thenReturn(users);
+        // Llama al método 'findAll()' en el objeto 'userService' y guarda el resultado en 'result'
+        Iterable<User> result = userService.findAll();
+        // Verifica que el método 'findAll()' del mock 'userRepository' se haya llamado exactamente una vez
+        verify(userRepository, times(1)).findAll();
+        // Verifica que el número de elementos en 'result' sea igual a 2 (la cantidad de usuarios en 'users')
+        assertEquals(2, ((Collection<?>) result).size());
+        // Verifica que el elemento en la posición 0 sea igual a user1
+        assertEquals(user1, ((List<User>) result).get(0));
+        // Verifica que el elemento en la posición 1 sea igual a user2
+        assertEquals(user2, ((List<User>) result).get(1));
     }
 }

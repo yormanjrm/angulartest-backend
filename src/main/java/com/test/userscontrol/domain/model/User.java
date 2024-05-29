@@ -16,6 +16,5 @@ public class User {
     private String password;
     private String role;
     private String image;
-    private LocalDateTime dateCreated;
-    private LocalDateTime dateUpdated;
+    private LocalDateTime date_created;
 }
