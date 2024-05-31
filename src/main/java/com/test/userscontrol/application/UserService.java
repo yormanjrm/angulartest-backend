@@ -25,4 +25,8 @@ public class UserService {
     public void deleteById(Integer id){
         iUserRepository.deleteById(id);
     }
+
+    public User findByEmail(String email){
+        return iUserRepository.findByEmail(email);
+    }
 }

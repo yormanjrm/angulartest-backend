@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,9 @@ class UserCrudRepositoryImpTests {
     @Mock
     private UserMapper userMapper;
 
+    @Mock
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @InjectMocks
     private UserCrudRepositoryImp userCrudRepositoryImp;
 
@@ -42,6 +46,8 @@ class UserCrudRepositoryImpTests {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
         now = LocalDateTime.now();
 

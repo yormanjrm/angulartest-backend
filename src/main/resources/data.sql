@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (name, email, password, role, image)
-VALUES ('John Doe', 'john.doe@example.com', 'password123', 'ADMIN', 'default.png');
+VALUES ('John Doe', 'john.doe@example.com', '$2a$10$/iOt2Bx.vd4PHhWWJttE3.mNlX/jriVf4dASqOwbijXR.0goXmyRe', 'ADMIN', 'default.png');
 
 INSERT INTO users (name, email, password, role, image)
-VALUES ('Jane Doe', 'jane.doe@example.com', 'password123', 'USER', 'default.png');
+VALUES ('Jane Doe', 'jane.doe@example.com', '$2a$10$/iOt2Bx.vd4PHhWWJttE3.mNlX/jriVf4dASqOwbijXR.0goXmyRe', 'RECEP', 'default.png');
