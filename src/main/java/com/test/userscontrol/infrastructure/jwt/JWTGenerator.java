@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.test.userscontrol.infrastructure.jwt.Constants.*;
-@Slf4j
 @Service // Marca esta clase como un servicio gestionado por Spring.
 public class JWTGenerator {
     // Método para generar un token JWT basado en el nombre de usuario.
@@ -24,8 +23,6 @@ public class JWTGenerator {
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining(","))
         );
-        log.info("authorityList :{}", authorityList);
-        log.info("authorityList claiM :{}", authorityList.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
         // Construye el token JWT utilizando Jwts.builder().
         String token = Jwts.builder()
                 .setId("userctrl") // Establece un ID para el JWT.

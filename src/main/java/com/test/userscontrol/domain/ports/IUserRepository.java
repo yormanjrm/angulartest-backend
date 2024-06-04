@@ -7,5 +7,6 @@ public interface IUserRepository {
     Iterable<User> findAll();
     User findById(Integer id);
     User findByEmail(String email);
+    User updateUser(User user);
     void deleteById(Integer id);
 }

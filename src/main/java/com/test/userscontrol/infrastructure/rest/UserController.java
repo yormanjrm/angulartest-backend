@@ -2,6 +2,10 @@ package com.test.userscontrol.infrastructure.rest;
 
 import com.test.userscontrol.application.UserService;
 import com.test.userscontrol.domain.model.User;
+import com.test.userscontrol.infrastructure.dto.ApiResponseDTO;
+import com.test.userscontrol.infrastructure.exception.DuplicateUserException;
+import com.test.userscontrol.infrastructure.exception.UserNotFoundException;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,25 +24,80 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> save(@RequestBody User user) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        return new ResponseEntity<>(userService.save(user), HttpStatus.CREATED);
+    public ResponseEntity<ApiResponseDTO<Object>> save(@RequestBody User user) {
+        try {
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            User savedUser = userService.save(user);
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(201, false, "Created user", savedUser);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (DuplicateUserException e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(409, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(500, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/get/all")
-    public ResponseEntity<Iterable<User>> findAll() {
-        return new ResponseEntity<>(userService.findAll(), HttpStatus.OK);
+    public ResponseEntity<ApiResponseDTO<Object>> findAll() {
+        try {
+            String message = "There are no registered users";
+            Integer code = 204;
+            Iterable<User> list = userService.findAll();
+            if (IterableUtils.size(list) > 0) {
+                message = "Users found";
+                code = 200;
+            }
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(code, false, message, list);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(500, true, "Internal server errror, try again.", null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/get/byId")
-    public ResponseEntity<User> findById(@RequestParam Integer id) {
-        return new ResponseEntity<>(userService.findById(id), HttpStatus.OK);
+    public ResponseEntity<ApiResponseDTO<Object>> findById(@RequestParam Integer id) {
+        try {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(200, false, "User found", userService.findById(id));
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(500, true, "Internal server errror, try again.", null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponseDTO<Object>> update(@RequestBody User user) {
+        try {
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            User updatedUser = userService.updateUser(user);
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(200, false, "Updated user", updatedUser);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (UserNotFoundException e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(404, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(500, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<HttpStatus> deleteById(@RequestParam Integer id) {
-        userService.deleteById(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponseDTO<Object>> deleteById(@RequestParam Integer id) {
+        try {
+            userService.deleteById(id);
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(200, false, "Deleted user", null);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (UserNotFoundException e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(404, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(500, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

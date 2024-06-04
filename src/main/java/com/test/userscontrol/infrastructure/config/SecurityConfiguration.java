@@ -38,6 +38,8 @@ public class SecurityConfiguration {
                         aut -> aut
                                 // Requiere el rol ADMIN para acceder a la ruta "/api/users/register".
                                 .requestMatchers("/api/users/register").hasRole("ADMIN")
+                                // Requiere el rol ADMIN para acceder a la ruta "/api/users/update".
+                                .requestMatchers("/api/users/update").hasRole("ADMIN")
                                 // Requiere el rol ADMIN para acceder a la ruta "/api/users/delete".
                                 .requestMatchers("/api/users/delete").hasRole("ADMIN")
                                 // Requiere el rol ADMIN para acceder a la ruta "/api/users/get/byId".

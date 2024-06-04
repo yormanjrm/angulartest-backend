@@ -26,6 +26,10 @@ public class UserService {
         iUserRepository.deleteById(id);
     }
 
+    public User updateUser(User user){
+        return iUserRepository.updateUser(user);
+    }
+
     public User findByEmail(String email){
         return iUserRepository.findByEmail(email);
     }

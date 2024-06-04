@@ -3,6 +3,7 @@ package com.test.userscontrol.infrastructure.adapter;
 import com.test.userscontrol.domain.model.User;
 import com.test.userscontrol.domain.ports.IUserRepository;
 import com.test.userscontrol.infrastructure.entity.UserEntity;
+import com.test.userscontrol.infrastructure.exception.DuplicateUserException;
 import com.test.userscontrol.infrastructure.exception.UserNotFoundException;
 import com.test.userscontrol.infrastructure.mapper.UserMapper;
 import org.springframework.stereotype.Repository;
@@ -24,7 +25,12 @@ public class UserCrudRepositoryImp implements IUserRepository {
     // Método para guardar un usuario en la base de datos.
     @Override
     public User save(User user) {
-        return userMapper.toUser(iUserCrudRepository.save(userMapper.toUserEntity(user)));
+        Optional<UserEntity> existingUserEntityOptional = iUserCrudRepository.findByEmail(user.getEmail());
+        if (existingUserEntityOptional.isPresent()) {
+            throw new DuplicateUserException("A user has been registered with email " + user.getEmail() + ", try another one.");
+        } else {
+            return userMapper.toUser(iUserCrudRepository.save(userMapper.toUserEntity(user)));
+        }
     }
 
     // Método para recuperar todos los usuarios de la base de datos.
@@ -53,9 +59,24 @@ public class UserCrudRepositoryImp implements IUserRepository {
         }
     }
 
+    @Override
+    public User updateUser(User user) {
+        Optional<UserEntity> userEntityOptional = iUserCrudRepository.findById(user.getId());
+        if (userEntityOptional.isEmpty()) {
+            throw new UserNotFoundException("User with id " + user.getId() + " not found");
+        } else {
+            return userMapper.toUser(iUserCrudRepository.save(userMapper.toUserEntity(user)));
+        }
+    }
+
     // Método para eliminar un usuario por su ID de la base de datos.
     @Override
     public void deleteById(Integer id) {
-        iUserCrudRepository.deleteById(id); // Se llama al método de eliminación por ID del repositorio CRUD.
+        Optional<UserEntity> userEntityOptional = iUserCrudRepository.findById(id);
+        if (userEntityOptional.isEmpty()) {
+            throw new UserNotFoundException("User with id " + id + " not found");
+        } else {
+            iUserCrudRepository.deleteById(id);
+        }
     }
 }

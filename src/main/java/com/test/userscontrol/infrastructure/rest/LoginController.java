@@ -2,6 +2,7 @@ package com.test.userscontrol.infrastructure.rest;
 
 import com.test.userscontrol.application.UserService;
 import com.test.userscontrol.domain.model.User;
+import com.test.userscontrol.infrastructure.dto.ApiResponseDTO;
 import com.test.userscontrol.infrastructure.exception.InvalidPasswordException;
 import com.test.userscontrol.infrastructure.exception.UserNotFoundException;
 import com.test.userscontrol.infrastructure.jwt.JWTClient;
@@ -33,7 +34,7 @@ public class LoginController {
 
 
     @PostMapping()
-    public ResponseEntity<JWTClient> login(@RequestParam String email, @RequestParam String password) {
+    public ResponseEntity<ApiResponseDTO<Object>> login(@RequestParam String email, @RequestParam String password) {
         try {
             User user = userService.findByEmail(email);
             if (bCryptPasswordEncoder.matches(password, user.getPassword())) {
@@ -43,16 +44,18 @@ public class LoginController {
                 );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 String token = jwtGenerator.getToken(email);
-                JWTClient jwtClient = new JWTClient(user.getId(), user.getRole(), token);
-                return new ResponseEntity<>(jwtClient, HttpStatus.OK);
-
+                JWTClient jwtClient = new JWTClient(user.getId(), user.getName(), user.getRole(), token);
+                ApiResponseDTO<Object> response = new ApiResponseDTO<>(200, false, "User authenticated", jwtClient);
+                return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 throw new InvalidPasswordException("Invalid password for email " + email);
             }
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(404, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         } catch (InvalidPasswordException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            ApiResponseDTO<Object> response = new ApiResponseDTO<>(403, true, e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
     }
 
