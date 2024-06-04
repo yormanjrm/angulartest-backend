@@ -46,6 +46,8 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/users/get/byId").hasRole("ADMIN")
                                 // Requiere autenticación para acceder a la ruta "/api/users/get/all".
                                 .requestMatchers("/api/users/get/all").authenticated()
+                                // Permite acceso sin autenticación a la ruta "/images".
+                                .requestMatchers("/images/**").permitAll()
                                 // Permite acceso sin autenticación a la ruta "/api/login".
                                 .requestMatchers("/api/login").permitAll())
                 // Agrega el filtro JWTAuthorizationFilter después del filtro UsernamePasswordAuthenticationFilter.

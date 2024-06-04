@@ -1,5 +1,8 @@
 package com.test.userscontrol.application;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.test.userscontrol.domain.model.User;
 import com.test.userscontrol.domain.ports.IUserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,92 +10,140 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-
-class UserServiceTests {
+public class UserServiceTests {
 
     @Mock
     private IUserRepository userRepository;
 
+    @Mock
+    private UploadFileService uploadFileService;
+
+    @Mock
+    private User newUserMock;
+
+    @Mock
+    private User savedUserMock;
+
+    @Mock
+    private User userToUpdateMock;
+
     @InjectMocks
     private UserService userService;
 
-    private LocalDateTime now;
-    private User newUser;
-    private User user1;
-    private User user2;
-    private List<User> users;
-
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        newUserMock = new User(0, "Name test", "email@mail.com", "password", "RECEP", "default.png", null);
+        savedUserMock = new User(1, "Name test", "email@mail.com", "$2a$10$/iOt2Bx.vd4PHhWWJttE3.mNlX/jriVf4dASqOwbijXR.0goXmyRe", "RECEP", "http://localhost:8080/images/test.jpg", null);
+        userToUpdateMock = new User(1, "Name test2", "email2@mail.com", "$2a$10$/iOt2Bx.vd4PHhWWJttE3.mNlX/jriVf4dASqOwbijXR.0goXmyRe", "RECEP", "http://localhost:8080/images/test.jpg", null);
+    }
 
-        now = LocalDateTime.now();
 
-        newUser = new User(null, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", null);
-
-        user1 = new User(1, "John Doe", "john.doe@example.com", "password123", "ADMIN", "default.png", now);
-        user2 = new User(2, "Jane Doe", "jane.doe@example.com", "password123", "USER", "default.png", now);
-
-        users = Arrays.asList(user1, user2);
+    @Test
+    public void testSaveUser() throws IOException {
+        // Creamos un mock de MultipartFile
+        MultipartFile multipartFile = mock(MultipartFile.class);
+        // Configuramos el comportamiento del mock de MultipartFile para que devuelva una URL simulada
+        when(uploadFileService.upload(multipartFile)).thenReturn("http://localhost:8080/images/test.jpg");
+        // Configuramos el comportamiento del repositorio de usuarios (userRepository) para que devuelva el mismo usuario que se le pasa como argumento
+        when(userRepository.save(newUserMock)).thenReturn(newUserMock);
+        // Llamamos al método save del servicio UserService para guardar un usuario
+        User savedUser = userService.save(newUserMock, multipartFile);
+        // Verificamos que el usuario guardado no sea nulo
+        assertNotNull(savedUser);
+        // Verificamos que el usuario guardado sea el mismo que el usuario original
+        assertEquals(newUserMock, savedUser);
+        // Verificamos que la URL de la imagen sea la esperada
+        assertEquals("http://localhost:8080/images/test.jpg", savedUser.getImage());
+        // Verificamos que el método save del repositorio se llame una vez con el usuario correcto
+        verify(userRepository, times(1)).save(newUserMock);
+        // Verificamos que el método upload del servicio de carga de archivos se llame una vez con el archivo correcto
+        verify(uploadFileService, times(1)).upload(multipartFile);
     }
 
     @Test
-    void shouldSaveUser() {
-        // Configura el comportamiento esperado del método 'save()' del mock 'userRepository'
-        // Cuando se llama al método 'save()' con 'newUser' como argumento, devuelve 'newUser'
-        when(userRepository.save(newUser)).thenReturn(newUser);
-        // Llama al método 'save()' en el objeto 'userService' con 'newUser' como argumento y guarda el resultado en 'savedUser'
-        User savedUser = userService.save(newUser);
-        // Verifica que el método 'save()' del mock 'userRepository' se haya llamado exactamente una vez con 'newUser' como argumento
-        verify(userRepository, times(1)).save(newUser);
-        // Verifica que 'savedUser' sea igual a 'newUser'
-        assertEquals(newUser, savedUser);
-
-    }
-
-    @Test
-    void shouldFindAllUsers() {
-        // Configura el comportamiento esperado del método 'findAll()' del mock 'userRepository'
-        // Cuando se llama al método 'findAll()', devuelve la lista de usuarios 'users'
-        when(userRepository.findAll()).thenReturn(users);
-        // Llama al método 'findAll()' en el objeto 'userService' y guarda el resultado en 'result'
-        Iterable<User> result = userService.findAll();
-        // Verifica que el método 'findAll()' del mock 'userRepository' se haya llamado exactamente una vez
+    public void testFindAllUsers() {
+        // Creamos una lista de usuarios simulada con un usuario guardado previamente (savedUserMock)
+        List<User> userList = Arrays.asList(savedUserMock);
+        // Configuramos el comportamiento del repositorio de usuarios (userRepository) para que devuelva la lista simulada
+        when(userRepository.findAll()).thenReturn(userList);
+        // Llamamos al método findAll del servicio UserService para buscar todos los usuarios
+        Iterable<User> foundUsers = userService.findAll();
+        // Verificamos que los usuarios encontrados sean iguales a la lista simulada
+        assertEquals(userList, foundUsers);
+        // Verificamos que el método findAll del repositorio se llame una vez
         verify(userRepository, times(1)).findAll();
-        // Verifica que el número de elementos en 'result' sea igual a 2 (la cantidad de usuarios en 'users')
-        assertEquals(2, ((Collection<?>) result).size());
-        // Verifica que el elemento en la posición 0 sea igual a user1
-        assertEquals(user1, ((List<User>) result).get(0));
-        // Verifica que el elemento en la posición 1 sea igual a user2
-        assertEquals(user2, ((List<User>) result).get(1));
     }
 
+
     @Test
-    void shouldReturnAnUserFindedById(){
-        // Configura el comportamiento esperado al llamar al método 'findById' del objeto 'userRepository'
-        // Cuando se llama con el ID 1 como argumento, devuelve 'user1'
-        when(userRepository.findById(1)).thenReturn(user1);
-        // Llama al método findById del UserService
-        User userFound = userService.findById(1);
-        // Verifica que el método 'findById' del objeto 'userRepository' se llamó una vez con el ID 1
+    public void testFindUserById() {
+        // Configuramos el comportamiento del repositorio de usuarios (userRepository) para que devuelva el usuario simulado cuando se llame con el ID 1
+        when(userRepository.findById(1)).thenReturn(savedUserMock);
+        // Llamamos al método findById del servicio UserService para buscar un usuario por su ID
+        User foundUser = userService.findById(1);
+        // Verificamos que el usuario encontrado sea igual al usuario simulado
+        assertEquals(savedUserMock, foundUser);
+        // Verificamos que el método findById del repositorio se llame una vez con el ID 1
         verify(userRepository, times(1)).findById(1);
-        // Verifica que el usuario devuelto es igual a 'user1'
-        assertEquals(user1, userFound);
     }
 
+
     @Test
-    void shouldDeleteUserById() {
-        // Llamada al método deleteById con el id 1
+    public void testDeleteUserById() {
+        // Configuramos el comportamiento del repositorio de usuarios (userRepository) para que devuelva el usuario simulado cuando se llame con el ID 1
+        when(userRepository.findById(1)).thenReturn(savedUserMock);
+        // Llamamos al método deleteById del servicio UserService para eliminar un usuario por su ID
         userService.deleteById(1);
-        // Verificamos que el método deleteById del repositorio se haya llamado exactamente una vez con el id 1
+        // Verificamos que el método delete del servicio de carga de archivos (uploadFileService) se llame una vez con cualquier nombre de archivo (indicando que se eliminó la imagen)
+        verify(uploadFileService, times(1)).delete(anyString());
+        // Verificamos que el método deleteById del repositorio se llame una vez con el ID 1
         verify(userRepository, times(1)).deleteById(1);
     }
+
+
+    @Test
+    public void testUpdateUserWithoutImage() throws IOException {
+        // Creamos un mock de MultipartFile para simular la ausencia de imagen
+        MultipartFile multipartFile = null;
+        // Configuramos el comportamiento del repositorio de usuarios (userRepository) para que devuelva el usuario simulado cuando se llame con el ID 1
+        when(userRepository.findById(1)).thenReturn(savedUserMock);
+        // Llamamos al método updateUser del servicio UserService para actualizar un usuario sin cambiar la imagen
+        User updatedUser = userService.updateUser(userToUpdateMock, multipartFile);
+        // Verificamos que el método updateUser del repositorio se llame una vez con el usuario actualizado
+        verify(userRepository, times(1)).updateUser(userToUpdateMock);
+    }
+
+
+    @Test
+    public void testUpdateUserWithImage() throws IOException {
+        // Creamos un mock de MultipartFile para simular la presencia de una nueva imagen
+        MultipartFile multipartFile = mock(MultipartFile.class);
+        // Configuramos el comportamiento del repositorio de usuarios (userRepository) para que devuelva el usuario simulado cuando se llame con el ID 1
+        when(userRepository.findById(1)).thenReturn(savedUserMock);
+        // Llamamos al método updateUser del servicio UserService para actualizar un usuario con una nueva imagen
+        User updatedUser = userService.updateUser(userToUpdateMock, multipartFile);
+        // Verificamos que el método updateUser del repositorio se llame una vez con el usuario actualizado
+        verify(userRepository, times(1)).updateUser(userToUpdateMock);
+    }
+
+
+    @Test
+    public void testFindByEmail() {
+        // Configuramos el comportamiento del repositorio de usuarios (userRepository) para que devuelva el usuario simulado cuando se llame con el correo electrónico "email@mail.com"
+        when(userRepository.findByEmail("email@mail.com")).thenReturn(savedUserMock);
+        // Llamamos al método findByEmail del servicio UserService para buscar un usuario por su correo electrónico
+        User foundUser = userService.findByEmail("email@mail.com");
+        // Verificamos que el usuario encontrado sea igual al usuario simulado
+        assertEquals(savedUserMock, foundUser);
+        // Verificamos que el método findByEmail del repositorio se llame una vez con el correo electrónico "email@mail.com"
+        verify(userRepository, times(1)).findByEmail("email@mail.com");
+    }
+
 }

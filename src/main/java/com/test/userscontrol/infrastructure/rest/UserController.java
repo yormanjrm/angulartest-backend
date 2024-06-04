@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,10 +25,18 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponseDTO<Object>> save(@RequestBody User user) {
+    public ResponseEntity<ApiResponseDTO<Object>> save(
+            @RequestParam("id") Integer id,
+            @RequestParam("name") String  name,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestParam("role") String role,
+            @RequestParam("image") String image,
+            @RequestParam(value = "imageFile", required = false) MultipartFile multipartFile) {
         try {
+            User user = new User(id, name, email, password, role, image, null);
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            User savedUser = userService.save(user);
+            User savedUser = userService.save(user, multipartFile);
             ApiResponseDTO<Object> response = new ApiResponseDTO<>(201, false, "Created user", savedUser);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (DuplicateUserException e) {
@@ -70,10 +79,18 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ApiResponseDTO<Object>> update(@RequestBody User user) {
+    public ResponseEntity<ApiResponseDTO<Object>> update(
+            @RequestParam("id") Integer id,
+            @RequestParam("name") String  name,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestParam("role") String role,
+            @RequestParam("image") String image,
+            @RequestParam(value = "imageFile", required = false) MultipartFile multipartFile) {
         try {
+            User user = new User(id, name, email, password, role, image, null);
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            User updatedUser = userService.updateUser(user);
+            User updatedUser = userService.updateUser(user, multipartFile);
             ApiResponseDTO<Object> response = new ApiResponseDTO<>(200, false, "Updated user", updatedUser);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (UserNotFoundException e) {

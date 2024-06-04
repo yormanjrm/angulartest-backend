@@ -8,7 +8,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BeanConfiguration {
     @Bean
-    public UserService userService(IUserRepository iUserRepository) {
-        return new UserService(iUserRepository);
+    public UserService userService(IUserRepository iUserRepository, UploadFileService uploadFileService) {
+        return new UserService(iUserRepository, uploadFileService);
+    }
+
+    @Bean
+    public UploadFileService uploadFile(){
+        return new UploadFileService();
     }
 }
