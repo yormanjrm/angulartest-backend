@@ -13,69 +13,74 @@ import java.util.Optional;
 @Repository // Anotación que indica que esta clase es un componente de repositorio gestionado por Spring.
 public class UserCrudRepositoryImp implements IUserRepository {
 
-    private final IUserCrudRepository iUserCrudRepository; // Repositorio CRUD para la entidad de usuario.
-    private final UserMapper userMapper; // Mapper para mapear entre entidades de usuario y modelos de dominio.
+    private final IUserCrudRepository iUserCrudRepository;
+    private final UserMapper userMapper;
 
-    // Constructor que recibe las dependencias necesarias.
     public UserCrudRepositoryImp(IUserCrudRepository iUserCrudRepository, UserMapper userMapper) {
-        this.iUserCrudRepository = iUserCrudRepository; // Inicialización del repositorio CRUD.
-        this.userMapper = userMapper; // Inicialización del mapper.
+        this.iUserCrudRepository = iUserCrudRepository;
+        this.userMapper = userMapper;
     }
 
-    // Método para guardar un usuario en la base de datos.
     @Override
     public User save(User user) {
+        // Busca un usuario existente por correo electrónico
         Optional<UserEntity> existingUserEntityOptional = iUserCrudRepository.findByEmail(user.getEmail());
         if (existingUserEntityOptional.isPresent()) {
+            // Si el usuario ya existe, lanza una excepción de usuario duplicado
             throw new DuplicateUserException("A user has been registered with email " + user.getEmail() + ", try another one.");
         } else {
+            // Si el usuario no existe, guarda el nuevo usuario y lo mapea a un objeto de dominio User
             return userMapper.toUser(iUserCrudRepository.save(userMapper.toUserEntity(user)));
         }
     }
 
-    // Método para recuperar todos los usuarios de la base de datos.
     @Override
     public Iterable<User> findAll() {
+        // Encuentra todos los usuarios y los mapea a una lista de objetos de dominio User
         return userMapper.toUsers(iUserCrudRepository.findAll());
     }
 
-    // Método para buscar un usuario por su ID en la base de datos.
     @Override
     public User findById(Integer id) {
-        // Se intenta encontrar el usuario por su ID, si no se encuentra, se lanza una excepción.
+        // Encuentra un usuario por su ID, lanza una excepción si no se encuentra
         return userMapper.toUser(iUserCrudRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found")));
     }
 
-    // Método para buscar un usuario por su email en la base de datos.
     @Override
     public User findByEmail(String email) {
-        // Se busca un usuario por su email. Si no se encuentra, se lanza una excepción.
+        // Encuentra un usuario por su correo electrónico
         Optional<UserEntity> userEntityOptional = iUserCrudRepository.findByEmail(email);
         if (userEntityOptional.isEmpty()) {
+            // Si no se encuentra, lanza una excepción de usuario no encontrado
             throw new UserNotFoundException("User with email " + email + " not found");
         } else {
-            // Retorna un objeto User mapeado a partir del Optional userEntityOptional; si está vacío, lanza una excepción UserNotFoundException
+            // Si se encuentra, lo mapea a un objeto de dominio User y lo devuelve
             return userMapper.toUser(userEntityOptional.orElseThrow(() -> new UserNotFoundException("User not found")));
         }
     }
 
     @Override
     public User updateUser(User user) {
+        // Encuentra el usuario por su ID
         Optional<UserEntity> userEntityOptional = iUserCrudRepository.findById(user.getId());
         if (userEntityOptional.isEmpty()) {
+            // Si no se encuentra, lanza una excepción de usuario no encontrado
             throw new UserNotFoundException("User with id " + user.getId() + " not found");
         } else {
+            // Si se encuentra, guarda el usuario actualizado y lo mapea a un objeto de dominio User
             return userMapper.toUser(iUserCrudRepository.save(userMapper.toUserEntity(user)));
         }
     }
 
-    // Método para eliminar un usuario por su ID de la base de datos.
     @Override
     public void deleteById(Integer id) {
+        // Encuentra el usuario por su ID
         Optional<UserEntity> userEntityOptional = iUserCrudRepository.findById(id);
         if (userEntityOptional.isEmpty()) {
+            // Si no se encuentra, lanza una excepción de usuario no encontrado
             throw new UserNotFoundException("User with id " + id + " not found");
         } else {
+            // Si se encuentra, elimina el usuario por su ID
             iUserCrudRepository.deleteById(id);
         }
     }
